@@ -1,0 +1,310 @@
+<div class="card">
+  <p-toast></p-toast>
+  <p-toolbar styleClass="mb-4 gap-2">
+    <ng-template pTemplate="left">
+      <button
+        pButton
+        pRipple
+        label="New"
+        icon="pi pi-plus"
+        class="p-button-success mr-2"
+        (click)="openNew()"
+      ></button>
+      <button
+        pButton
+        pRipple
+        label="Delete"
+        icon="pi pi-trash"
+        class="p-button-danger"
+        (click)="deleteSelectedCuDans()"
+        [disabled]="!selectedCanHos || !selectedCanHos.length"
+      ></button>
+    </ng-template>
+
+    <!-- <ng-template pTemplate="right">
+        <p-fileUpload
+          mode="basic"
+          accept="image/*"
+          [maxFileSize]="1000000"
+          label="Import"
+          chooseLabel="Import"
+          class="mr-2 inline-block"
+        ></p-fileUpload>
+        <button
+          pButton
+          pRipple
+          label="Export"
+          icon="pi pi-upload"
+          class="p-button-help"
+        ></button>
+      </ng-template> -->
+  </p-toolbar>
+
+  <p-table
+    #dt
+    [value]="canHos"
+    [rows]="10"
+    [paginator]="true"
+    [globalFilterFields]="['dienTich', 'diaChi']"
+    [tableStyle]="{ 'min-width': '75rem' }"
+    [(selection)]="selectedCanHos"
+    [rowHover]="true"
+    dataKey="id"
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    [showCurrentPageReport]="true"
+  >
+    <ng-template pTemplate="caption">
+      <div class="flex-container">
+        <h3 class="m-0">Danh Sách Căn Hộ</h3>
+        <span class="p-input-icon-left ml-auto">
+          <i class="pi pi-search"></i>
+          <input
+            pInputText
+            type="text"
+            (input)="dt.filterGlobal($any($event.target).value, 'contains')"
+            placeholder="Search..."
+          />
+        </span>
+      </div>
+    </ng-template>
+    <ng-template pTemplate="header">
+      <tr>
+        <th style="width: 4rem">
+          <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+        </th>
+        <th pSortableColumn="dienTich" style="min-width: 10rem">
+          Diện Tích<p-sortIcon field="dienTich"></p-sortIcon>
+        </th>
+        <!-- <th>Image</th> -->
+        <th pSortableColumn="diaChi" style="min-width: 15rem">
+          Địa Chỉ<p-sortIcon field="diaChi"></p-sortIcon>
+        </th>
+        <!-- <th pSortableColumn="sdt">
+            Số Điện Thoại<p-sortIcon field="sdt"></p-sortIcon>
+          </th>
+          <th pSortableColumn="ngaySinh">
+            Ngày Sinh<p-sortIcon field="ngaySinh"></p-sortIcon>
+          </th> -->
+
+        <th>Thao tác</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-canHo>
+      <tr>
+        <td>
+          <p-tableCheckbox [value]="canHo"></p-tableCheckbox>
+        </td>
+        <td>{{ canHo.dienTich }}</td>
+        <!-- <td><img [src]="'https://primefaces.org/cdn/primeng/images/demo/product/' + product.image" [alt]="product.name" width="50" class="shadow-4" /></td> -->
+        <td>{{ canHo.diaChi }}</td>
+        <!-- <td>{{ cuDan.sdt }}</td>
+          <td>{{ cuDan.ngaySinh }}</td> -->
+        <!-- <td><p-rating [ngModel]="product.rating" [readonly]="true" [cancel]="false"></p-rating></td>
+                  <td>
+                      <p-tag [value]="product.inventoryStatus" [severity]="getSeverity(product.inventoryStatus)"></p-tag>
+                  </td> -->
+        <td>
+          <button
+            pButton
+            pRipple
+            icon="pi pi-pencil"
+            class="p-button-rounded p-button-success mr-2"
+            (click)="editCuDan(canHo)"
+          ></button>
+          <button
+            pButton
+            pRipple
+            icon="pi pi-trash"
+            class="p-button-rounded p-button-warning"
+            (click)="deleteCuDan(canHo)"
+          ></button>
+          <button
+            pButton
+            pRipple
+            icon="pi pi-eye"
+            class="p-button-rounded p-button-primary"
+            (click)="viewCuDan(canHo.id)"
+            title="Thông tin cư dân trong căn hộ"
+          ></button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="summary">
+      <div class="flex align-items-center justify-content-between">
+        In total there are {{ canHos ? canHos.length : 0 }} apartments.
+      </div>
+    </ng-template>
+  </p-table>
+</div>
+<p-dialog
+  [(visible)]="canHoDialog"
+  [style]="{ width: '450px' }"
+  header="Thông tin can ho"
+  [modal]="true"
+  styleClass="p-fluid"
+>
+  <ng-template pTemplate="content">
+    <br />
+    <!-- <img [src]="'https://primefaces.org/cdn/primeng/images/demo/product/' + product.image" [alt]="product.image" class="block m-auto pb-3" *ngIf="product.image" /> -->
+    <div class="field">
+      <label for="dienTich">Dien tich (m^2)</label>
+      <input
+        type="text"
+        pInputText
+        id="dienTich"
+        [(ngModel)]="canHo.dienTich"
+        placeholder="Ex: 100.111"
+        required
+      />
+      <small
+        class="p-error"
+        *ngIf="submitted && !canHo.dienTich && !canHo.diaChi"
+        >Dien tich is required.</small
+      >
+    </div>
+    <br />
+    <br />
+    <div class="field">
+      <label for="diaChi">Dia chi</label>
+      <textarea
+        id="diaChi"
+        pInputTextarea
+        [(ngModel)]="canHo.diaChi"
+        required
+        rows="2"
+        cols="20"
+      ></textarea>
+      <small
+        class="p-error"
+        *ngIf="submitted && !canHo.diaChi && !canHo.dienTich"
+        >Dia chi is required.</small
+      >
+    </div>
+    <!-- <br>
+      <br>
+      <div class="field">
+        <label for="sdt">SDT</label>
+        <input
+          type="text"
+          pInputText
+          id="sdt"
+          [(ngModel)]="cuDan.sdt"
+          required
+          autofocus
+        />
+        <small class="p-error" *ngIf="submitted && !cuDan.sdt"
+          >SDT is required.</small
+        >
+      </div>
+      <br>
+      <br>
+      <div class="field">
+        <label for="ngaySinh">Ngày sinh</label>
+  
+        <p-calendar
+          inputId="ngaySinh"
+          [(ngModel)]="cuDan.ngaySinh"
+          [showIcon]="true"
+          [readonlyInput]="true"
+          dateFormat="dd/mm/yy"
+          styleClass="custom-calendar"
+        ></p-calendar>
+  
+        <small class="p-error" *ngIf="submitted && !cuDan.ngaySinh"
+          >Ngay sinh is required.</small
+        >
+      </div> -->
+    <!-- <div class="field">
+              <label for="inventoryStatus">Inventory Status</label>
+              <p-dropdown [(ngModel)]="product.inventoryStatus" inputId="inventoryStatus" [options]="statuses">
+                  <ng-template pTemplate="selectedItem">
+                      <p-tag [value]="product.inventoryStatus"  [severity]="getSeverity(product.inventoryStatus)"></p-tag>
+                  </ng-template>
+                  <ng-template let-option pTemplate="item">
+                      <p-tag [value]="option.label" [severity]="getSeverity(option.label)"></p-tag>
+                  </ng-template>
+              </p-dropdown>
+          </div> -->
+
+    <!-- <div class="field">
+              <label class="mb-3">Category</label>
+              <div class="formgrid grid">
+                  <div class="field-radiobutton col-6">
+                      <p-radioButton id="category1" name="category" value="Accessories" [(ngModel)]="product.category"></p-radioButton>
+                      <label for="category1">Accessories</label>
+                  </div>
+                  <div class="field-radiobutton col-6">
+                      <p-radioButton id="category2" name="category" value="Clothing" [(ngModel)]="product.category"></p-radioButton>
+                      <label for="category2">Clothing</label>
+                  </div>
+                  <div class="field-radiobutton col-6">
+                      <p-radioButton id="category3" name="category" value="Electronics" [(ngModel)]="product.category"></p-radioButton>
+                      <label for="category3">Electronics</label>
+                  </div>
+                  <div class="field-radiobutton col-6">
+                      <p-radioButton id="category4" name="category" value="Fitness" [(ngModel)]="product.category"></p-radioButton>
+                      <label for="category4">Fitness</label>
+                  </div>
+              </div>
+          </div> -->
+
+    <!-- <div class="formgrid grid">
+              <div class="field col">
+                  <label for="price">Price</label>
+                  <p-inputNumber id="price" [(ngModel)]="product.price" mode="currency" currency="USD" locale="en-US"></p-inputNumber>
+              </div>
+              <div class="field col">
+                  <label for="quantity">Quantity</label>
+                  <p-inputNumber id="quantity" [(ngModel)]="product.quantity"></p-inputNumber>
+              </div>
+          </div> -->
+  </ng-template>
+
+  <ng-template pTemplate="footer">
+    <button
+      pButton
+      pRipple
+      label="Cancel"
+      icon="pi pi-times"
+      class="p-button-text"
+      (click)="hideDialog()"
+    ></button>
+    <button
+      pButton
+      pRipple
+      label="Save"
+      icon="pi pi-check"
+      class="p-button-text"
+      (click)="saveCanHo()"
+    ></button>
+  </ng-template>
+</p-dialog>
+<p-dialog
+  [(visible)]="viewCuDanDialog"
+  [style]="{ width: '450px' }"
+  header="Thông tin cư dân trong căn hộ"
+  [modal]="true"
+  styleClass="p-fluid"
+>
+  <ng-template pTemplate="content">
+    <p-table [value]="cuDanByCanHo" [tableStyle]="{ 'min-width': '20rem' }" *ngIf="cuDanByCanHo && cuDanByCanHo.length > 0">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Họ và tên</th>
+          <th>SDT</th>
+          <th>Ngày sinh</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-cuDan>
+        <tr>
+          <td>{{ cuDan.name }}</td>
+          <td>{{ cuDan.sdt }}</td>
+          <td>{{ cuDan.ngaySinh }}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+    <p *ngIf="!cuDanByCanHo || cuDanByCanHo.length == 0"> Căn nhà này chưa có người mua or thuê!</p>
+  </ng-template>
+</p-dialog>
+
+<p-confirmDialog [style]="{ width: '450px' }"></p-confirmDialog>
